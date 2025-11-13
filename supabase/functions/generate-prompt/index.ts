@@ -13,7 +13,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { storyIdea } = await req.json();
+    const { storyIdea, chatgptApiKey } = await req.json();
 
     if (!storyIdea) {
       return new Response(
@@ -25,12 +25,11 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const chatgptApiKey = Deno.env.get("VITE_CHATGPT_API_KEY");
     if (!chatgptApiKey) {
       return new Response(
-        JSON.stringify({ error: "API key not configured" }),
+        JSON.stringify({ error: "API key not provided" }),
         {
-          status: 500,
+          status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
@@ -84,7 +83,7 @@ Ensure all content follows these rules:
       const error = await response.text();
       console.error("OpenAI API error:", error);
       return new Response(
-        JSON.stringify({ error: "Failed to generate prompt" }),
+        JSON.stringify({ error: "Failed to generate prompt", details: error }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -112,7 +111,7 @@ Ensure all content follows these rules:
   } catch (error) {
     console.error("Error:", error);
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", details: error.message }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
