@@ -25,6 +25,17 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    const chatgptApiKey = Deno.env.get("VITE_CHATGPT_API_KEY");
+    if (!chatgptApiKey) {
+      return new Response(
+        JSON.stringify({ error: "API key not configured" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const prompt = `You are ScriptSmith, an expert screenwriter and creative prompt engineer. Your task is to expand a one-line story idea into a fully structured cinematic creative brief.
 
 Use the P.E.R.F.E.C.T. framework to expand this story:
@@ -51,28 +62,27 @@ Ensure all content follows these rules:
 - End the CINEMATIC_PROMPT with a hook or twist
 - All strings must be properly JSON-escaped with line breaks represented as \\n`;
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        "x-api-key": Deno.env.get("ANTHROPIC_API_KEY") || "",
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
+        "Authorization": `Bearer ${chatgptApiKey}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-3-5-sonnet-20241022",
-        max_tokens: 2000,
+        model: "gpt-4o",
         messages: [
           {
             role: "user",
             content: prompt,
           },
         ],
+        max_tokens: 2000,
       }),
     });
 
     if (!response.ok) {
       const error = await response.text();
-      console.error("Anthropic API error:", error);
+      console.error("OpenAI API error:", error);
       return new Response(
         JSON.stringify({ error: "Failed to generate prompt" }),
         {
@@ -83,7 +93,7 @@ Ensure all content follows these rules:
     }
 
     const data = await response.json();
-    const content = data.content[0]?.text || "";
+    const content = data.choices[0]?.message?.content || "";
 
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
