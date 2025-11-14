@@ -38,6 +38,21 @@ export default function Preview({ result }) {
         </section>
 
         <section className="preview-section">
+          <div className="preview-label">Art Direction</div>
+          <p>{result.artDirection}</p>
+        </section>
+
+        <section className="preview-section">
+          <div className="preview-label">Costume & Makeup</div>
+          <p>{result.costumeAndMakeup}</p>
+        </section>
+
+        <section className="preview-section">
+          <div className="preview-label">Lighting & Effects</div>
+          <p>{result.lightingAndEffects}</p>
+        </section>
+
+        <section className="preview-section">
           <div className="preview-label">Theme & Takeaway</div>
           <p>{result.themeAndTakeaway}</p>
         </section>
